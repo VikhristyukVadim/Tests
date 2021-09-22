@@ -4,7 +4,7 @@ from server_app import add_item, get_list, change_note_by_id, delete_note, find_
 
 parser = argparse.ArgumentParser(description='--> launch App')
 
-parser.add_argument('--new_note', help='--> create new note')
+parser.add_argument('--new_note', help='--> create new note (type the text in quotes )')
 parser.add_argument('--note_list', action='store_true', help='--> load note list')
 parser.add_argument('--change_by_id', nargs=2, help='--> transform note (specify first id then text )')
 parser.add_argument('--find_note_by_txt', help='--> transform note ( text )')
