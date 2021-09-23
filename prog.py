@@ -1,5 +1,7 @@
 import argparse
 
+import requests
+
 from server_app import add_item, get_list, change_note_by_id, delete_note, find_note_by_txt
 
 parser = argparse.ArgumentParser(description='--> launch App')
@@ -15,9 +17,10 @@ args = parser.parse_args()
 
 def result(q):
     if q.new_note:
-        add_item(q.new_note)
+        new_txt = q.new_note
+        print('YOU_ADD_ITEM: ', requests.post("http://127.0.0.1:5000/example/new_txt", {'data': {new_txt}}))
     elif q.note_list:
-        get_list()
+        print('NOTES_LIST: ', requests.get("http://127.0.0.1:5000/example/list").json())
     elif q.change_by_id:
         change_note_by_id(q.change_by_id)
     elif q.find_note_by_txt:
