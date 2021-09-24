@@ -17,16 +17,23 @@ args = parser.parse_args()
 
 def result(q):
     if q.new_note:
-        new_txt = q.new_note
-        print('YOU_ADD_ITEM: ', requests.post("http://127.0.0.1:5000/example/new_txt", {'data': {new_txt}}))
+        res = requests.post("http://127.0.0.1:5000/example/new_txt", json={'data': q.new_note})
+        if res:
+            print('Response OK',res.json())
+        else:
+            print('Response Failed')
     elif q.note_list:
-        print('NOTES_LIST: ', requests.get("http://127.0.0.1:5000/example/list").json())
+        res = requests.get("http://127.0.0.1:5000/example/list").json()
+        if res:
+            print('Response OK',res)
+        else:
+            print('Response Failed')
     elif q.change_by_id:
-        change_note_by_id(q.change_by_id)
+        requests.put("http://127.0.0.1:5000/example/change/" + str(q.change_by_id[0]), json={'data': q.change_by_id[1]})
     elif q.find_note_by_txt:
-        find_note_by_txt(q.find_note_by_txt)
+        requests.get("http://127.0.0.1:5000/example/find/" + q.find_note_by_txt)
     elif q.delete_note:
-        delete_note(int(q.delete_note))
+        requests.delete("http://127.0.0.1:5000/example/delete/" + str(q.change_by_id[0]))
 
 
 result(args)
