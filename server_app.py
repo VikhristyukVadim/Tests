@@ -16,21 +16,22 @@ def get_list():
 def add_item():
     content = request.json['data']
     print('content', content)
-    insert_notes(content)
-    return {"id": 10}, 200
+    n = insert_notes(content)
+    return {"Note created with id": n}, 200
 
 
 @app.route("/example/change/<int:note_id>", methods=['PUT'])
 def change_note_by_id(note_id):
-    print('note_id', note_id)
     content = request.json['data']
-    return "You add: " + content, 200
+    result = change_by_id(note_id, content)
+    print('content------------------', result)
+    return result, 200
 
 
 @app.route("/example/find/<note_text>", methods=['GET'])
 def find_note_by_txt(note_text):
     data = change_by_word(note_text)
-    return "You have find note num" + data, 200
+    return "You have find note num: " + data, 200
 
 
 @app.route("/example/delete/<int:note_id>", methods=['DELETE'])

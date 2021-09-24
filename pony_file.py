@@ -10,6 +10,7 @@ class Notes(db.Entity):
 @db_session
 def insert_notes(message):
     Notes(quote=message)
+    return Notes.select().count()
 
 
 @db_session
@@ -34,11 +35,12 @@ def change_by_word(new_txt):
 
 
 @db_session
-def change_by_id(new_txt):
+def change_by_id(item_id, new_txt):
     data = Notes.select()
     for i in data:
-        if int(new_txt[0]) == i.id:
-            i.quote = new_txt[1]
+        if item_id == i.id:
+            i.quote = new_txt
+            return 'You have changed note with id:  ' + str(i.id) + '  to the text:  ' + str(i.quote)
 
 
 @db_session
