@@ -25,13 +25,14 @@ def get_notes_list():
 
 
 @db_session
-def change_by_word(new_txt):
+def find_by_word(new_txt):
+    result = None
     data = Notes.select()
     for i in data:
         res = i.quote.split().count(new_txt)
         if res > 0:
             result = str(i.id) + ":  " + i.quote
-            return result
+    return result
 
 
 @db_session

@@ -1,5 +1,5 @@
 from flask import Flask, request
-from pony_file import insert_notes, get_notes_list, del_note, change_by_word, change_by_id
+from pony_file import insert_notes, get_notes_list, del_note, find_by_word, change_by_id
 
 app = Flask(__name__)
 
@@ -24,14 +24,16 @@ def add_item():
 def change_note_by_id(note_id):
     content = request.json['data']
     result = change_by_id(note_id, content)
-    print('content------------------', result)
     return result, 200
 
 
 @app.route("/example/find/<note_text>", methods=['GET'])
 def find_note_by_txt(note_text):
-    data = change_by_word(note_text)
-    return "You have find note num: " + data, 200
+    data = find_by_word(note_text)
+    if data is not None:
+        return "You have find note num: " + data, 200
+    else:
+        return "No matches found ", 205
 
 
 @app.route("/example/delete/<int:note_id>", methods=['DELETE'])
