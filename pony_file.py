@@ -37,8 +37,6 @@ def get_notes_list():
 @db_session
 def find_by_word(new_txt):
     product_list = Notes.select(lambda note: note.quote == new_txt)[:]
-    # ae = db.get("select quote from Notes where quote = $new_txt")
-    # print('ae============================',ae)
     notes = []
     for i in product_list:
         notes.extend([{'id': i.note_id}, {'quote': i.quote}])
