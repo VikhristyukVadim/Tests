@@ -30,16 +30,16 @@ def change_note_by_id(note_id):
 def find_note_by_txt(note_text):
     data = find_by_word(note_text)
     return data, 200
-    # if data is not None:
-    #     return "You have find note num: " + data, 200
-    # else:
-    #     return "No matches found ", 205
 
 
 @app.route("/delete/<int:note_id>", methods=['DELETE'])
 def delete_note(note_id):
-    del_note(note_id)
-    return 'Object vs id ' + str(note_id) + ' is deleted', 200
+    answer = del_note(note_id)
+    if answer['status'] == 'ok':
+        return {'data': answer}, 200
+    else:
+        print('error', answer)
+        return {'data': answer}, 404
 
 
 if __name__ == "__main__":

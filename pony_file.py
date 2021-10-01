@@ -1,62 +1,58 @@
 from pony.orm import *
 
+from Tests.methods import check_for_errors, result_to_json
+
 db = Database('sqlite', 'my_db.sqlite', create_db=True)
 
-set_sql_debug(True)
-
-
-def result_to_json(note_id, message):
-    return {'data': [{'id': note_id}, {"quote": message}]}
+# ----------------------------------
+"""Create data base entity"""
 
 
 class Notes(db.Entity):
-    note_id = PrimaryKey(int)
+    id = PrimaryKey(int, auto=True)
     quote = Required(str)
 
 
+# ----------------------------------
+
 @db_session
 def insert_notes(message):
-    notes_select = Notes.select()
-    j = 0
-    for i in notes_select:
-        if i.note_id > j:
-            j = i.note_id
-    Notes(quote=message, note_id=j + 1)
-    return result_to_json(j, message)
+    n = Notes(quote=message)
+    commit()
+    return {'data': [result_to_json(n.id, n.quote)]}
 
 
 @db_session
 def get_notes_list():
+    n = Notes.select()
     result = {'data': []}
-    res = Notes.select()
-    for i in res:
-        result['data'].append({str(i.note_id): i.quote})
+    for i in n:
+        result['data'].append(result_to_json(i.id, i.quote))
     return result
 
 
+@check_for_errors
 @db_session
 def find_by_word(new_txt):
-    product_list = Notes.select(lambda note: note.quote == new_txt)[:]
+    product_list = Notes.select(lambda note: new_txt in note.quote).limit(10)
     notes = []
     for i in product_list:
-        notes.extend([{'id': i.note_id}, {'quote': i.quote}])
+        notes.append({'id': i.id, 'quote': i.quote})
     return {"data": notes}
 
 
+@check_for_errors
 @db_session
 def change_by_id(item_id, new_txt):
-    data = Notes.select()
-    for i in data:
-        if item_id == i.note_id:
-            i.quote = new_txt
-            return result_to_json(i.note_id, i.quote)
+    data = Notes[item_id]
+    data.quote = new_txt
+    return {'data': [result_to_json(data.id, data.quote)]}
 
 
+@check_for_errors
 @db_session
 def del_note(del_id):
-    deleted_element = Notes.get(id=del_id)
-    deleted_element.delete()
-    return del_id
+    Notes[del_id].delete()
 
 
 db.generate_mapping(create_tables=True)
