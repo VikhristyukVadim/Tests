@@ -1,6 +1,6 @@
 from pony.orm import *
 
-from Tests.methods import check_for_errors, result_to_json
+from methods import result_to_json
 
 db = Database('sqlite', 'my_db.sqlite', create_db=True)
 
@@ -19,7 +19,7 @@ class Notes(db.Entity):
 def insert_notes(message):
     n = Notes(quote=message)
     commit()
-    return {'data': [result_to_json(n.id, n.quote)]}
+    return result_to_json(n.id, n.quote)
 
 
 @db_session
@@ -31,28 +31,29 @@ def get_notes_list():
     return result
 
 
-@check_for_errors
 @db_session
 def find_by_word(new_txt):
     product_list = Notes.select(lambda note: new_txt in note.quote).limit(10)
     notes = []
-    for i in product_list:
-        notes.append({'id': i.id, 'quote': i.quote})
-    return {"data": notes}
+    if product_list:
+        for i in product_list:
+            notes.append({'id': i.id, 'quote': i.quote})
+        return {"data": notes}
+    else:
+        return {"status": "error", "message": "Record is not found"}, 404
 
 
-@check_for_errors
 @db_session
 def change_by_id(item_id, new_txt):
     data = Notes[item_id]
     data.quote = new_txt
-    return {'data': [result_to_json(data.id, data.quote)]}
+    return result_to_json(data.id, data.quote)
 
 
-@check_for_errors
 @db_session
 def del_note(del_id):
     Notes[del_id].delete()
+    return {"status": "ok", "message": "record is deleted"}
 
 
 db.generate_mapping(create_tables=True)

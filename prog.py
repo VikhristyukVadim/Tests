@@ -3,7 +3,6 @@ import argparse
 import requests
 from requests.exceptions import HTTPError, ConnectionError
 
-from prettytable import PrettyTable
 from urllib.parse import unquote
 
 parser = argparse.ArgumentParser(description='--> launch App', formatter_class=argparse.RawTextHelpFormatter, )
@@ -31,11 +30,18 @@ def check_status(response):
     except ConnectionError as bad_connect:
         print(f'Problem with connect: {bad_connect}')
     else:
-        x = PrettyTable()
-        x.field_names = ["id", "Note"]
-        for i in response.json()['data']:
-            x.add_row([int(i['id']), i['quote']])
-        print(x)
+        table_width = 50
+        print('{:1} {:10}'.format('id', 'Note'.center(table_width, '_')))
+        res = response.json()
+        if res.get('data'):
+            for i in res['data']:
+                print("{:1} {:.50}".format(i['id'], i['quote'].ljust(table_width, ' ')))
+        elif res.get('id'):
+            print("{:1} {:.50}".format(res['id'], res['quote'].ljust(table_width, ' ')))
+        elif res.get('message'):
+            print(res['message'])
+        else:
+            print(res)
 
 
 def result(q):
