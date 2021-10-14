@@ -14,11 +14,9 @@ def check_for_errors(fn):
 
 
 def result_to_json(note_id, message, category):
-    print('note_id, message, category', note_id, message, category)
     if note_id and message and category:
         return {"id": note_id, "quote": message, "category": category.category_name}
     elif category:
-        print('category', category)
         return {"id": note_id, "quote": " ", "category": category}
     else:
         return {"id": note_id, "quote": message, "category": "----"}
@@ -36,19 +34,21 @@ def check_status(response):
     else:
         table_width = 50
         res = response.json()
-        # print('res============', res)
         if res.get('data') or res.get('category'):
-            print('{:1} {:10} {:1}'.format('Id', 'Note'.center(table_width, '_'), "Category".center(10, ".")))
+            print('{:2} {:10} {:1}'.format('Id', 'Note'.center(table_width, '_'), "Category".center(10, ".")))
         if res.get('data'):
             for i in res['data']:
-                print("{:1} {:.50} {:1}".format(i['id'], i['quote'].ljust(table_width, ' '), i['category'].center(10)))
+                print("{:2} {:.50} {:1}".format(i['id'], i['quote'].ljust(table_width, '.'), i['category'].center(10)))
         elif res.get('id'):
             print(
-                "{:1} {:.50} {:1}".format(res['id'], res['quote'].ljust(table_width, ' '), res['category'].center(10)))
+                "{:2} {:.50} {:1}".format(res['id'], res['quote'].ljust(table_width, ' '), res['category'].center(10)))
         elif res.get('message'):
             print(res['message'])
         elif res.get('category'):
-            print('res',res)
-            print("{:1} {:.60} {:40}".format(res['id'], " ".ljust(table_width, ' '), res['category'].center(10)))
+            print("{:2} {:.60} {:40}".format(res['id'], " ".ljust(table_width, ' '), res['category'].center(10)))
         else:
             print(res)
+
+
+def unite_txt(txt):
+    return ' '.join(txt)

@@ -1,75 +1,141 @@
 import argparse
 
 import requests
-from methods import check_status
+from methods import check_status, unite_txt
 
-from urllib.parse import unquote
-
+"""Initialising of arg parser"""
 parser = argparse.ArgumentParser(description='--> launch App', formatter_class=argparse.RawTextHelpFormatter, )
+subparsers = parser.add_subparsers(title="object", dest="object", help="parser_note help")
 
+"""Default server"""
 serverWay = 'http://127.0.0.1:5000'
 
-parser.add_argument('--server', help=serverWay, nargs="*")
+"""Creating parser arguments"""
+# Server parser-------------------------------------------------------------------------------------------------------
+parser.add_argument('--server', help=serverWay, required=True)
 
-parser.add_argument('--new_note', nargs="*", help='--> create new note')
-parser.add_argument('--note_list', action='store_true', help='--> load note list')
-parser.add_argument('--change_by_id', nargs=2, help='--> transform note (specify first id then text )')
-parser.add_argument('--find_note_by_txt', help='--> transform note ( text )')
-parser.add_argument('--delete_note', help='--> delete note by id')
+# Note parsers -------------------------------------------------------------------------------------------------------
+note_sub = subparsers.add_parser("note", help="note element")
+note_actions = note_sub.add_subparsers(dest="action", help="actions for working with notes ", required=True)
 
-parser.add_argument('--add_category', '--add_c', help='--> add new category', nargs="*")
-parser.add_argument('--category_list', '--list_c', action='store_true', help='--> load category list')
-parser.add_argument('--del_category', '--del_c', help='--> delete category by name')
-parser.add_argument('--edit_category', '--edit_c', nargs=2, help='--> edit category')
-parser.add_argument('--find_n_in_category', '--find_n', help='--> find notes in category ( int )')
-parser.add_argument('--del_n_in_category', '--del_in_c', help='--> delete notes in category')
-parser.add_argument('--change_n_category', '--ch_c', nargs=2,
-                    help='--> change notes category ( first note int, second category int )')
+# note actions---
+note_add_sub = note_actions.add_parser("add", help="add new note")
+note_txt_sub = note_add_sub.add_argument('--text', required=True, nargs="*", help="type text of note, use str")
+note_category_sub = note_add_sub.add_argument('--category', required=True, help="insert ID of note category, use int")
+
+note_list_sub = note_actions.add_parser("list")
+
+note_change_text_sub = note_actions.add_parser("change_note", help="change note text")
+note_id_change_sub = note_change_text_sub.add_argument('--id', type=int, required=True,
+                                                       help="insert ID changed note, use int")
+note_txt_change_sub = note_change_text_sub.add_argument('--text', nargs='*', required=True,
+                                                        help="insert new text for note, use str")
+
+note_change_category_sub = note_actions.add_parser("change_category",
+                                                   help="change category of note use note ID and category ID")
+note_category_change_category_sub = note_change_category_sub.add_argument('--id', required=True)
+note_id_change_category_sub = note_change_category_sub.add_argument('--category_id', required=True)
+
+note_find_sub = note_actions.add_parser("find", help="find note by text, use str")
+note_id_find_sub = note_find_sub.add_argument('--text', required=True, help="insert text, use str")
+
+note_del_sub = note_actions.add_parser("delete", help="delete note")
+note_id_sub = note_del_sub.add_argument('--id', required=True, help="insert ID deleted note, use int")
+
+# range_choice = [id_change_sub.dest, txt_change_sub.dest, category_change_sub.dest]
+# choice_change_sub = change_sub.add_argument('ch', choices=range_choice)
+
+
+# Category parsers----------------------------------------------------------------------------------------------------
+
+category_sub = subparsers.add_parser("category", help="parser_category help")
+category_actions = category_sub.add_subparsers(dest="action", help="action help", required=True)
+
+# category actions---
+category_add_sub = category_actions.add_parser("add")
+category_txt_sub = category_add_sub.add_argument('--text', nargs="*", required=True)
+
+category_list_sub = category_actions.add_parser("list")
+
+category_change_text_sub = category_actions.add_parser("change_name")
+category_id_change_sub = category_change_text_sub.add_argument('--id', type=int, required=True)
+category_txt_change_sub = category_change_text_sub.add_argument('--text', nargs="*", required=True)
+
+category_find_sub = category_actions.add_parser("find")
+category_id_find_sub = category_find_sub.add_argument('--id', required=True)
+
+category_clear_notes_sub = category_actions.add_parser("clear")
+category_id_clear_notes_sub = category_clear_notes_sub.add_argument('--id', required=True)
+
+category_del_sub = category_actions.add_parser("delete")
+category_id_sub = category_del_sub.add_argument('--id', required=True)
 
 args = parser.parse_args()
 
 
-def result(q):
-    server_url = q.server[0]
+# Processing requests
+def result(res):
+    # Define server URL
+    server_url = res.server
+
+    # Using an error handler
     try:
-        if q.server:
-            # ------------------------------------------------------------------------------------------------------
-            # NOTES
-            # ------------------------------------------------------------------------------------------------------
-            if q.new_note:
-                to_str = ' '.join(q.new_note)
-                to_split = to_str.split('...')
-                check_status(requests.post(server_url + "/new_txt/" + unquote(str(to_split[1])),
-                                           json={'data': to_split[0]}))
-            elif q.note_list:
-                check_status(requests.get(server_url + "/list"))
-            elif q.change_by_id:
-                check_status(requests.put(server_url + "/change/" + unquote(str(q.change_by_id[0])),
-                                          json={'data': q.change_by_id[1]}))
-            elif q.find_note_by_txt:
-                check_status(requests.get(server_url + "/find/" + unquote(q.find_note_by_txt)))
-            elif q.delete_note:
-                check_status(requests.delete(server_url + "/delete/" + unquote(str(q.delete_note))))
-            # ------------------------------------------------------------------------------------------------------
-            # CATEGORY
-            # ------------------------------------------------------------------------------------------------------
-            elif q.add_category:
-                to_str = ' '.join(q.add_category)
-                check_status(requests.post(server_url + "/c_add", json={'data': to_str}))
-            elif q.category_list:
-                check_status(requests.get(server_url + "/c_list"))
-            elif q.edit_category:
-                check_status(requests.put(server_url + "/c_edit/" + unquote(str(q.edit_category[0])),
-                                          json={'data': q.edit_category[1]}))
-            elif q.del_category:
-                check_status(requests.delete(server_url + "/c_del/" + unquote(str(q.del_category))))
-            elif q.find_n_in_category:
-                check_status(requests.get(server_url + "/find_n/" + unquote(q.find_n_in_category)))
-            elif q.del_n_in_category:
-                check_status(requests.delete(server_url + "/del_n_in_cat/" + unquote(str(q.del_n_in_category))))
-            elif q.change_n_category:
-                check_status(
-                    requests.put(server_url + "/ch_n_cat", json={'data': q.change_n_category}))
+        # If the correct server is available, we continue to form the request.
+        if res.server:
+            # NOTES___________________________________________________________________________________________________
+            if res.object == "note":
+                if res.action == "add":
+                    check_status(requests.post(server_url + "/add_note",
+                                               json={"quote": unite_txt(res.text),
+                                                     "category": int(res.category)}))
+
+                elif res.action == "list":
+                    check_status(requests.get(server_url + "/list_notes"))
+
+                elif res.action == "change_note":
+                    check_status(requests.put(server_url + "/change_note",
+                                              json={'id': res.id,
+                                                    "quote": unite_txt(res.text)}))
+
+                elif res.action == "change_category" and res.category_id is not None:
+                    check_status(requests.put(server_url + "/change_category",
+                                              json={"id": int(res.id),
+                                                    "category_id": int(res.category_id)}))
+
+                elif res.action == "find":
+                    check_status(requests.get(server_url + "/find_note",
+                                              json={"quote": unite_txt(res.text)}))
+
+                elif res.action == "delete":
+                    check_status(requests.delete(server_url + "/delete_note",
+                                                 json={"id": int(res.id)}))
+
+            # CATEGORY________________________________________________________________________________________________
+            elif res.object == "category":
+
+                if res.action == "add":
+                    check_status(requests.post(server_url + "/add_category",
+                                               json={'quote': unite_txt(res.text)}))
+
+                elif res.action == 'list':
+                    check_status(requests.get(server_url + "/list_category"))
+
+                elif res.action == 'change_name':
+                    check_status(requests.put(server_url + "/change_name",
+                                              json={"id": res.id, "quote": unite_txt(res.text)}))
+
+                elif res.action == 'clear':
+                    check_status(requests.delete(server_url + "/clear",
+                                                 json={"id": res.id}))
+
+                elif res.action == 'find':
+                    check_status(requests.get(server_url + "/find_category_note",
+                                              json={"id": res.id}))
+
+                elif res.action == 'delete':
+                    check_status(requests.delete(server_url + "/delete_category",
+                                                 json={"id": res.id}))
+
     except requests.exceptions.ConnectionError as error:
         print(str(error))
 
