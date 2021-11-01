@@ -1,9 +1,7 @@
 from flask import Flask, request
 from pony import orm
 
-from pony_file import insert_notes, get_notes_list, del_note, find_by_word, change_note_by_id, create_category, \
-    del_category, change_category, find_note_category, delete_all_category_notes, get_category_list, \
-    change_category_in_note
+from pony_file import *
 
 app = Flask(__name__)
 
@@ -13,15 +11,14 @@ client = app.test_client()
 # Notes------------------------------------------------------------------------------------------------------------
 @app.route('/note/add', methods=['POST'])
 def add_new_note():
-
     """
     for creating new note, need id of category
-    :return: type(dict)- added note (id,quote,category)
+    :return: type(dict)- added note (id,record,category)
     """
     req = request.json
 
     try:
-        return insert_notes(req['quote'], req['category'])
+        return insert_notes(req['record'], req['category'])
     except Exception as err:
         return {"status": "error", "message": str(err)}, 500
 
@@ -30,7 +27,7 @@ def add_new_note():
 def get_list():
     """
     requesting a list of notes
-    :return: type(dict)- list of te notes (id, quotes)
+    :return: type(dict)- list of te notes (id, record)
     """
     try:
         return get_notes_list()
@@ -42,14 +39,14 @@ def get_list():
 def change_note():
     """
     to change note
-    :return: type(dict)- changed note (id,quote,category_name)
+    :return: type(dict)- changed note (id,record,name)
     """
     res = request.json
     try:
-        if "category_id" in res and res["category_id"] is not None:
-            return change_category_in_note(res["id"], res["category_id"])
-        elif "quote" in res and res["quote"] is not None:
-            return change_note_by_id(res["id"], res['quote'])
+        if "category" in res and res["category"] is not None:
+            return change_category_in_note(res["id"], res["category"])
+        elif "record" in res and res["record"] is not None:
+            return change_note_by_id(res["id"], res['record'])
 
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
@@ -62,11 +59,11 @@ def find_note_by_txt():
     """
     to find note by word
 
-    :return: type(dict)- found notes (id,quote,category_name)
+    :return: type(dict)- found notes (id,record,name)
     """
     req = request.json
     try:
-        return find_by_word(req["quote"])
+        return find_by_word(req["record"])
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
@@ -94,13 +91,15 @@ def delete_note():
 def add_category():
     """
     for create a new category of notes
-    :return: type(dict)- new category (id,category_name)
+    :return: type(dict)- new category (id,name)
     """
     req = request.json
     try:
-        return create_category(req["quote"])
+        return create_category(req["name"])
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
+    except orm.core.TransactionIntegrityError:
+        return {"status": "error", "message": "UNIQUE constraint failed"}, 400
     except Exception as err:
         return {"status": "error", "message": str(err)}, 500
 
@@ -109,7 +108,7 @@ def add_category():
 def get_cat_list():
     """
     requesting a list of category
-    :return: type(dict)- list of category (id,category_name)
+    :return: type(dict)- list of category (id,name)
     """
     try:
         return get_category_list()
@@ -121,12 +120,11 @@ def get_cat_list():
 def change_category_by_id():
     """
     changing the name of the category of a note
-    :return: type(dict)- new category_name(id,category_name)
+    :return: type(dict)- new name(id,name)
     """
     req = request.json
-
     try:
-        return change_category(req["id"], req["quote"])
+        return change_category(req["id"], req["name"])
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
@@ -152,7 +150,7 @@ def delete_all_in_category():
 def find_note_by_category():
     """
     displaying all notes in a category
-    :return: type(dict)- the list of notes (id,quote,category_name)
+    :return: type(dict)- the list of notes (id,record,name)
     """
     req = request.json
     try:

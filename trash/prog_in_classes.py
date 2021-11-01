@@ -85,7 +85,7 @@ class Item:
         server_url = self.server_url
         return server_url + "/" + self.name + url
 
-    def list(self, *args):
+    def list(self):
         url = "/list"
         server_url = self.server_url
         return server_url + "/" + self.name + url
