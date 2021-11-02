@@ -9,6 +9,7 @@ def check_for_errors(response):
     :param response:
     :return:
     """
+
     try:
         response.raise_for_status()
     except orm.core.ObjectNotFound:
@@ -62,3 +63,14 @@ def create_request(r):
         return requests.put
     if r == "delete" or r == "clear":
         return requests.delete
+
+
+def check_status(obj):
+    if isinstance(obj, type):
+        return
+    elif not obj:
+        print("--> There are no objects")
+    elif obj and "message" in obj:
+        print('status - ' + obj["status"], "---", obj["message"])
+    else:
+        return obj

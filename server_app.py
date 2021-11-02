@@ -16,7 +16,7 @@ def add_new_note():
     :return: type(dict)- added note (id,record,category)
     """
     req = request.json
-
+    # return insert_notes(req['record'], req['category'])
     try:
         return insert_notes(req['record'], req['category'])
     except Exception as err:
@@ -29,8 +29,12 @@ def get_list():
     requesting a list of notes
     :return: type(dict)- list of te notes (id, record)
     """
+    response = get_notes_list()
     try:
-        return get_notes_list()
+        if len(response["data"]) == 0:
+            return {"status": "error", "message": "List is empty"}, 404
+        else:
+            return response
     except Exception as err:
         return {"status": "error", "message": str(err)}, 500
 
@@ -63,7 +67,7 @@ def find_note_by_txt():
     """
     req = request.json
     try:
-        return find_by_word(req["record"])
+        return find_by_word(req)
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
@@ -78,7 +82,7 @@ def delete_note():
     """
     req = request.json
     try:
-        return del_note(req['id'])
+        return del_note(req)
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
@@ -137,9 +141,8 @@ def delete_all_in_category():
     that deletes all notes in a category
     :return:"status": "ok"
     """
-    req = request.json
     try:
-        return delete_all_category_notes(req["id"])
+        return delete_all_category_notes(request.json)
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
@@ -152,9 +155,8 @@ def find_note_by_category():
     displaying all notes in a category
     :return: type(dict)- the list of notes (id,record,name)
     """
-    req = request.json
     try:
-        return find_note_category(req["id"])
+        return find_note_category(request.json)
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
@@ -167,9 +169,8 @@ def del_category_by_id():
     to change the category of the note
     :return: "status": "ok"
     """
-    req = request.json
     try:
-        return del_category(req["id"])
+        return del_category(request.json)
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:

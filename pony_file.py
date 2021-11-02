@@ -28,12 +28,15 @@ def insert_notes(note_txt, note_category):
     :param note_category: type(int)- category id
     :return: type(dict)- added note (id,record,category)
     """
+    print('def insert_notes0')
     if Category[note_category]:
+        print('def insert_notes1')
         new_note = Notes(record=note_txt, category=note_category)
         commit()
         return result_to_json(new_note.id, new_note.record,
                               category={"id": new_note.category.id, "name": new_note.category.name})
     else:
+        print('def insert_notes2')
         return {"status": "error", "message": "Category is not found"}, 404
 
 
@@ -64,7 +67,8 @@ def change_note_by_id(note_id, new_txt):
     """
     data = Notes[note_id]
     data.record = new_txt
-    return result_to_json(data.id, data.record, category={"id": data.category.id, "name": data.category.name})
+    return {"status": "ok", "message": "Record is changed"}
+    # return result_to_json(data.id, data.record, category={"id": data.category.id, "name": data.category.name})
 
 
 @db_session
