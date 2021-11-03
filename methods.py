@@ -3,25 +3,26 @@ from pony import orm
 from requests.exceptions import HTTPError, ConnectionError
 
 
-def check_for_errors(response):
-    """
-    function checking the presence of objects
-    :param response:
-    :return:
-    """
-
-    try:
-        response.raise_for_status()
-    except orm.core.ObjectNotFound:
-        return {"status": "error", "message": "Record is not found"}, 404
-    except HTTPError as http_err:
-        print(f'HTTP error occurred: {http_err}')
-    except Exception as err:
-        print(f'Other error occurred: {err}')
-    except ConnectionError as bad_connect:
-        print(f'Problem with connect: {bad_connect}')
-    else:
-        return response
+# def check_for_errors(response):
+#     """
+#     function checking the presence of objects
+#     :param response:
+#     :return:
+#     """
+#
+#     try:
+#         response.raise_for_status()
+#     except orm.core.ObjectNotFound:
+#         return {"status": "error", "message": "Record is not found"}, 404
+#     except HTTPError as http_err:
+#         print(f'HTTP error occurred: {http_err}')
+#         return response
+#     except Exception as err:
+#         print(f'Other error occurred: {err}')
+#     except ConnectionError as bad_connect:
+#         print(f'Problem with connect: {bad_connect}')
+#     else:
+#         return response
 
 
 def result_to_json(note_id, record, category):
@@ -74,3 +75,8 @@ def check_status(obj):
         print('status - ' + obj["status"], "---", obj["message"])
     else:
         return obj
+
+
+def look_for_errors(response, check_for_errors):
+    if response.status_code != 200:
+        raise check_for_errors(response.json()["message"])

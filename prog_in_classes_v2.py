@@ -1,9 +1,7 @@
 from argparse_methods import argument_parser
-from methods import create_request, unite_txt, check_for_errors, check_status
+from methods import create_request, unite_txt, check_status, look_for_errors
 
 """Default server"""
-
-server_way = 'http://127.0.0.1:5000'
 
 
 class Note:
@@ -25,7 +23,6 @@ class Note:
 
     @staticmethod
     def from_json(resp):
-        print("def from_json(resp)::::", resp)
         return Note(resp["id"], resp["record"], resp["category"])
 
     def to_json(self):
@@ -78,6 +75,17 @@ class Category:
         print("{:} {:2} {:.50} {:1}".format("|", self.id, self.name.center(50, "."), "|"))
 
 
+class CheckForErrors(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        if self.message:
+            return 'ERROR, {0} '.format(self.message)
+        else:
+            return 'ERROR has been raised'
+
+
 class Server:
     def __init__(self, address):
         self.address = address
@@ -87,12 +95,17 @@ class Server:
         return ready_request(self.address + "/" + name + "/" + api, json=data)
 
     def add(self, item):
-        resp = check_for_errors(self._send_request(item.request_name(), "add", item.to_json()))
-        if resp is not None:
-            return item.from_json(resp.json())
+        resp = self._send_request(item.request_name(), "add", item.to_json())
+
+        look_for_errors(resp, CheckForErrors)
+
+        return item.from_json(resp.json())
 
     def list(self, item):
-        resp = check_for_errors(self._send_request(item.request_name(), "list"))
+        resp = self._send_request(item.request_name(), "list")
+
+        look_for_errors(resp, CheckForErrors)
+
         if resp is not None:
             item_list = []
             for i in resp.json()["data"]:
@@ -103,7 +116,10 @@ class Server:
             return item_list
 
     def change(self, item):
-        resp = check_for_errors(self._send_request(item.request_name(), "change", item.to_json()))
+        resp = self._send_request(item.request_name(), "change", item.to_json())
+
+        look_for_errors(resp, CheckForErrors)
+
         if resp is not None:
             if "id" in resp.json():
                 return item.from_json(resp.json())
@@ -112,14 +128,20 @@ class Server:
 
     def find(self, item_value, item):
         if item.request_name() == "note":
-            resp = check_for_errors(self._send_request(item.request_name(), "find", item_value))
+            resp = self._send_request(item.request_name(), "find", item_value)
+
+            look_for_errors(resp, CheckForErrors)
+
             if resp is not None:
                 item_list = []
                 for i in resp.json()["data"]:
                     item_list.append(Note.from_json(i))
                 return item_list
         elif item.request_name() == "category":
-            resp = check_for_errors(self._send_request(item.request_name(), "find-note", item_value))
+            resp = self._send_request(item.request_name(), "find-note", item_value)
+
+            look_for_errors(resp, CheckForErrors)
+
             if resp is not None:
                 item_list = []
                 for i in resp.json()["data"]:
@@ -127,97 +149,105 @@ class Server:
                 return item_list
 
     def delete(self, item_id, item):
-        resp = check_for_errors(self._send_request(item.request_name(), "delete", item_id))
+        resp = self._send_request(item.request_name(), "delete", item_id)
+
+        look_for_errors(resp, CheckForErrors)
+
         return resp.json() if hasattr(resp, "json") else resp
 
     def clear(self, item_id, item):
-        resp = check_for_errors(self._send_request(item.request_name(), "clear", item_id))
+        resp = self._send_request(item.request_name(), "clear", item_id)
+
+        look_for_errors(resp, CheckForErrors)
+
         return resp.json() if hasattr(resp, "json") else resp
 
 
 if __name__ == '__main__':
 
-    # NOTES_____________________________________________________________________________________________________________
     def result(args_values):
         """
         Processing requests
         :param args_values:
         :return:
         """
-        if args_values.object == "note":
-            if args_values.action == "add":
-                obj = Server(server_way).add(Note(0, unite_txt(args_values.text), args_values.category))
-                if obj is not None:
-                    check_status(obj.to_json())
-                    obj.print_item()
-
-            elif args_values.action == "list":
-                obj = Server(server_way).list(Note)
-                if obj is not None:
-                    check_status(obj)
-                    Note.show_table_headers()
-                    for i in obj:
-                        i.print_table()
-
-            elif args_values.action == "change":
-                if args_values.text is not None or args_values.category is not None:
-                    obj = Server(server_way).change(
-                        Note(args_values.id, unite_txt(args_values.text), args_values.category))
+        try:
+            # NOTES_____________________________________________________________________________________________________
+            if args_values.object == "note":
+                if args_values.action == "add":
+                    obj = Server(args_values.server).add(Note(0, unite_txt(args_values.text), args_values.category))
                     if obj is not None:
-                        check_status(obj)
+                        obj.print_item()
 
-            elif args_values.action == "find":
-                obj = Server(server_way).find(unite_txt(args_values.text), Note)
-                check_status(obj)
-                if obj is not None:
-                    Note.show_table_headers()
-                    for i in obj:
-                        i.print_table()
-
-            elif args_values.action == "delete":
-                obj = Server(server_way).delete(args_values.id, Note)
-                check_status(obj)
-
-        # CATEGORY_____________________________________________________________________________________________________________
-        elif args_values.object == "category":
-            if args_values.action == "add":
-                obj = Server(server_way).add(Category(0, unite_txt(args_values.text)))
-                if obj is not None:
-                    check_status(obj.to_json())
-                    obj.print_item()
-
-            elif args_values.action == "list":
-                obj = Server(server_way).list(Category)
-                if obj is not None:
-                    check_status(obj)
-                    if len(obj) != 0:
-                        Category.show_table_headers()
+                elif args_values.action == "list":
+                    obj = Server(args_values.server).list(Note)
+                    if obj is not None:
+                        Note.show_table_headers()
                         for i in obj:
                             i.print_table()
 
-            elif args_values.action == "change":
-                obj = Server(server_way).change(Category(args_values.id, unite_txt(args_values.text)))
-                if obj is not None:
-                    check_status(obj.to_json())
-                    obj.print_item()
+                elif args_values.action == "change":
+                    if args_values.text is None and args_values.category is None:
+                        print("please enter --category(id) or --text of the Notes(str) ")
+                    if args_values.text is not None or args_values.category is not None:
+                        obj = Server(args_values.server).change(
+                            Note(args_values.id, unite_txt(args_values.text), args_values.category))
+                        if obj is not None:
+                            check_status(obj)
 
-            elif args_values.action == "find":
-                obj = Server(server_way).find(args_values.id, Category)
-                check_status(obj)
-                if obj is not None:
-                    Note.show_table_headers()
-                    for i in obj:
-                        i.print_table()
+                elif args_values.action == "find":
+                    obj = Server(args_values.server).find(unite_txt(args_values.text), Note)
+                    check_status(obj)
+                    if obj is not None:
+                        Note.show_table_headers()
+                        for i in obj:
+                            i.print_table()
 
-            elif args_values.action == "clear":
-                obj = Server(server_way).clear(args_values.id, Category)
-                if obj is not None:
+                elif args_values.action == "delete":
+                    obj = Server(args_values.server).delete(args_values.id, Note)
                     check_status(obj)
 
-            elif args_values.action == "delete":
-                obj = Server(server_way).delete(args_values.id, Category)
-                if obj is not None:
+            # CATEGORY_____________________________________________________________________________________________________________
+            elif args_values.object == "category":
+                if args_values.action == "add":
+                    obj = Server(args_values.server).add(Category(0, unite_txt(args_values.text)))
+                    if obj is not None:
+                        obj.print_item()
+
+                elif args_values.action == "list":
+                    obj = Server(args_values.server).list(Category)
+                    if obj is not None:
+                        if len(obj) != 0:
+                            Category.show_table_headers()
+                            for i in obj:
+                                i.print_table()
+
+                elif args_values.action == "change":
+                    obj = Server(args_values.server).change(Category(args_values.id, unite_txt(args_values.text)))
+                    if obj is not None:
+                        check_status(obj.to_json())
+                        obj.print_item()
+
+                elif args_values.action == "find":
+                    obj = Server(args_values.server).find(args_values.id, Category)
                     check_status(obj)
+                    if obj is not None:
+                        Note.show_table_headers()
+                        for i in obj:
+                            i.print_table()
+
+                elif args_values.action == "clear":
+                    obj = Server(args_values.server).clear(args_values.id, Category)
+                    if obj is not None:
+                        check_status(obj)
+
+                elif args_values.action == "delete":
+                    obj = Server(args_values.server).delete(args_values.id, Category)
+                    if obj is not None:
+                        check_status(obj)
+
+        except CheckForErrors as err:
+            print(f'Error occurred: {err}')
 
 
-    result(argument_parser(server_way))
+    result(argument_parser())

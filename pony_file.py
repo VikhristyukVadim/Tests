@@ -28,15 +28,12 @@ def insert_notes(note_txt, note_category):
     :param note_category: type(int)- category id
     :return: type(dict)- added note (id,record,category)
     """
-    print('def insert_notes0')
     if Category[note_category]:
-        print('def insert_notes1')
         new_note = Notes(record=note_txt, category=note_category)
         commit()
         return result_to_json(new_note.id, new_note.record,
                               category={"id": new_note.category.id, "name": new_note.category.name})
     else:
-        print('def insert_notes2')
         return {"status": "error", "message": "Category is not found"}, 404
 
 
@@ -116,7 +113,7 @@ def del_note(note_id):
     :return: ok
     """
     Notes[note_id].delete()
-    return {"status": "ok", "message": "record is deleted"}
+    return {"status": "ok", "message": "Note with ID:" + note_id + " - was deleted"}
 
 
 # CATEGORY_METHODS____________________________________________________________________________________________________

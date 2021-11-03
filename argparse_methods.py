@@ -1,14 +1,14 @@
 import argparse
 
 
-def argument_parser(server_way):
+def argument_parser():
     """Initialising of arg parser"""
     parser = argparse.ArgumentParser(description='--> launch App', formatter_class=argparse.RawTextHelpFormatter, )
     subparsers = parser.add_subparsers(title="object", dest="object", help="parser_note help")
 
     """Creating parser arguments"""
     # Server parser----------------------------------------------------------------------------------------------------
-    parser.add_argument('--server', help=server_way, required=True)
+    parser.add_argument('--server', help="server", required=True)
 
     # NOTE parsers ----------------------------------------------------------------------------------------------------
     note_sub = subparsers.add_parser("note", help="note element")

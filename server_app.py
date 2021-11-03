@@ -19,7 +19,11 @@ def add_new_note():
     # return insert_notes(req['record'], req['category'])
     try:
         return insert_notes(req['record'], req['category'])
+    except orm.core.ObjectNotFound:
+        print('orm.core.ObjectNotFound',orm.core.ObjectNotFound,orm.core.OrmError.args)
+        return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
+
         return {"status": "error", "message": str(err)}, 500
 
 
@@ -114,8 +118,12 @@ def get_cat_list():
     requesting a list of category
     :return: type(dict)- list of category (id,name)
     """
+    response = get_category_list()
     try:
-        return get_category_list()
+        if len(response["data"]) == 0:
+            return {"status": "error", "message": "List is empty"}, 404
+        else:
+            return response
     except Exception as err:
         return {"status": "error", "message": str(err)}, 500
 
