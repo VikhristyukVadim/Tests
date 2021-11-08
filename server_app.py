@@ -16,11 +16,10 @@ def add_new_note():
     :return: type(dict)- added note (id,record,category)
     """
     req = request.json
-    # return insert_notes(req['record'], req['category'])
     try:
         return insert_notes(req['record'], req['category'])
     except orm.core.ObjectNotFound:
-        print('orm.core.ObjectNotFound',orm.core.ObjectNotFound,orm.core.OrmError.args)
+        print('orm.core.ObjectNotFound', orm.core.ObjectNotFound, orm.core.OrmError.args)
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:
 
@@ -51,11 +50,7 @@ def change_note():
     """
     res = request.json
     try:
-        if "category" in res and res["category"] is not None:
-            return change_category_in_note(res["id"], res["category"])
-        elif "record" in res and res["record"] is not None:
-            return change_note_by_id(res["id"], res['record'])
-
+        return change_note_by_id(res["id"], res['record'], res["category"])
     except orm.core.ObjectNotFound:
         return {"status": "error", "message": "Record is not found"}, 404
     except Exception as err:

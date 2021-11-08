@@ -1,7 +1,5 @@
 from argparse_methods import argument_parser
-from methods import create_request, unite_txt, check_status, look_for_errors
-
-"""Default server"""
+from methods import create_request, unite_txt, look_for_errors, print_status
 
 
 class Note:
@@ -120,11 +118,7 @@ class Server:
 
         look_for_errors(resp, CheckForErrors)
 
-        if resp is not None:
-            if "id" in resp.json():
-                return item.from_json(resp.json())
-            else:
-                return resp.json()
+        return resp.json()
 
     def find(self, item_value, item):
         if item.request_name() == "note":
@@ -176,75 +170,61 @@ if __name__ == '__main__':
             if args_values.object == "note":
                 if args_values.action == "add":
                     obj = Server(args_values.server).add(Note(0, unite_txt(args_values.text), args_values.category))
-                    if obj is not None:
-                        obj.print_item()
+                    obj.print_item()
 
                 elif args_values.action == "list":
                     obj = Server(args_values.server).list(Note)
-                    if obj is not None:
-                        Note.show_table_headers()
-                        for i in obj:
-                            i.print_table()
+                    Note.show_table_headers()
+                    for i in obj:
+                        i.print_table()
 
                 elif args_values.action == "change":
                     if args_values.text is None and args_values.category is None:
-                        print("please enter --category(id) or --text of the Notes(str) ")
-                    if args_values.text is not None or args_values.category is not None:
+                        print("please enter --category(id) or --text of the Notes(str)")
+                    else:
                         obj = Server(args_values.server).change(
                             Note(args_values.id, unite_txt(args_values.text), args_values.category))
-                        if obj is not None:
-                            check_status(obj)
+                        print_status(obj)
 
                 elif args_values.action == "find":
                     obj = Server(args_values.server).find(unite_txt(args_values.text), Note)
-                    check_status(obj)
-                    if obj is not None:
-                        Note.show_table_headers()
-                        for i in obj:
-                            i.print_table()
+                    Note.show_table_headers()
+                    for i in obj:
+                        i.print_table()
 
                 elif args_values.action == "delete":
                     obj = Server(args_values.server).delete(args_values.id, Note)
-                    check_status(obj)
+                    print_status(obj)
 
             # CATEGORY_____________________________________________________________________________________________________________
             elif args_values.object == "category":
                 if args_values.action == "add":
                     obj = Server(args_values.server).add(Category(0, unite_txt(args_values.text)))
-                    if obj is not None:
-                        obj.print_item()
+                    obj.print_item()
 
                 elif args_values.action == "list":
                     obj = Server(args_values.server).list(Category)
-                    if obj is not None:
-                        if len(obj) != 0:
-                            Category.show_table_headers()
-                            for i in obj:
-                                i.print_table()
+                    Category.show_table_headers()
+                    for i in obj:
+                        i.print_table()
 
                 elif args_values.action == "change":
                     obj = Server(args_values.server).change(Category(args_values.id, unite_txt(args_values.text)))
-                    if obj is not None:
-                        check_status(obj.to_json())
-                        obj.print_item()
+                    obj.print_item()
 
                 elif args_values.action == "find":
                     obj = Server(args_values.server).find(args_values.id, Category)
-                    check_status(obj)
-                    if obj is not None:
-                        Note.show_table_headers()
-                        for i in obj:
-                            i.print_table()
+                    Note.show_table_headers()
+                    for i in obj:
+                        i.print_table()
 
                 elif args_values.action == "clear":
                     obj = Server(args_values.server).clear(args_values.id, Category)
-                    if obj is not None:
-                        check_status(obj)
+                    print_status(obj)
 
                 elif args_values.action == "delete":
                     obj = Server(args_values.server).delete(args_values.id, Category)
-                    if obj is not None:
-                        check_status(obj)
+                    print_status(obj)
 
         except CheckForErrors as err:
             print(f'Error occurred: {err}')

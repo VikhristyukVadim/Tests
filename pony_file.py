@@ -54,33 +54,20 @@ def get_notes_list():
 
 
 @db_session
-def change_note_by_id(note_id, new_txt):
+def change_note_by_id(note_id, new_txt, new_category):
     """
     change the text of the note
 
     :param note_id: type(int)- id
     :param new_txt: type(str)- record
+    :param new_category: type(int)- id
     :return: type(dict)- changed note (id,record,name)
     """
-    data = Notes[note_id]
-    data.record = new_txt
-    return {"status": "ok", "message": "Record is changed"}
-    # return result_to_json(data.id, data.record, category={"id": data.category.id, "name": data.category.name})
-
-
-@db_session
-def change_category_in_note(note_id, category_id):
-    """
-    change note category
-
-    :param note_id: type(int)- id
-    :param category_id: type(int)- id
-    :return: ok
-    """
-    note = Notes.get(id=note_id)
-    category = Category[category_id]
-    note.category = category.id
-    commit()
+    if new_txt:
+        Notes[note_id].record = new_txt
+        return {"status": "ok", "message": "Record is changed"}
+    elif new_category:
+        Notes[note_id].category = new_category
     return {"status": "ok", "message": "Record category is changed"}
 
 
@@ -181,7 +168,6 @@ def find_note_category(note_category_id):
 def delete_all_category_notes(note_category_id):
     """
     that deletes all notes in a category
-
     :param note_category_id: type(int)- id
     :return: ok
     """
